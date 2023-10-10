@@ -1,6 +1,9 @@
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::TcpListener;
-use zero_2_prod::configuration::{get_configuration, DatabaseSettings};
+use zero_2_prod::{
+    configuration::{get_configuration, DatabaseSettings},
+    telemetry::{get_subscriber, init_subscriber},
+};
 
 #[tokio::test]
 async fn health_check_works() {
@@ -77,11 +80,16 @@ pub struct TestApp {
 }
 
 async fn spawn_app() -> TestApp {
+    let subscriber = get_subscriber("test".into(), "debug".into());
+    init_subscriber(subscriber);
+
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind");
     let port = listener.local_addr().unwrap().port();
+
     let mut configuration = get_configuration().expect("Failed to load config");
     configuration.database.database_name = uuid::Uuid::new_v4().to_string();
     let pg_pool = configure_database(&configuration.database).await;
+
     let server =
         zero_2_prod::startup::run(listener, pg_pool.clone()).expect("Failed to bind address");
     let _ = tokio::spawn(server);
