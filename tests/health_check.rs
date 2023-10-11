@@ -100,7 +100,7 @@ async fn spawn_app() -> TestApp {
     let port = listener.local_addr().unwrap().port();
 
     let mut configuration = get_configuration().expect("Failed to load config");
-    configuration.database.database_name = uuid::Uuid::new_v4().to_string();
+    configuration.database.database_name = sqlx::types::Uuid::new_v4().to_string();
     let pg_pool = configure_database(&configuration.database).await;
 
     let server =
