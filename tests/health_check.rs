@@ -2,7 +2,7 @@ use once_cell::sync::Lazy;
 use secrecy::ExposeSecret;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::TcpListener;
-use zero_2_prod::{
+use zero2prod::{
     configuration::{get_configuration, DatabaseSettings},
     telemetry::{get_subscriber, init_subscriber},
 };
@@ -104,7 +104,7 @@ async fn spawn_app() -> TestApp {
     let pg_pool = configure_database(&configuration.database).await;
 
     let server =
-        zero_2_prod::startup::run(listener, pg_pool.clone()).expect("Failed to bind address");
+        zero2prod::startup::run(listener, pg_pool.clone()).expect("Failed to bind address");
     let _ = tokio::spawn(server);
 
     TestApp {
