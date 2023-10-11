@@ -1,3 +1,4 @@
+use config::{Config, File};
 use secrecy::{ExposeSecret, Secret};
 
 #[derive(serde::Deserialize)]
@@ -45,24 +46,21 @@ impl DatabaseSettings {
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
-    let mut settings = config::Config::default();
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let configuration_directory = base_path.join("configuration");
-    // Read the "default" configuration file
-    settings.merge(config::File::from(configuration_directory.join("base")).required(true))?;
-    // Detect the running environment.
-    // Default to `local` if unspecified.
     let environment: Environment = std::env::var("APP_ENVIRONMENT")
         .unwrap_or_else(|_| "local".into())
         .try_into()
         .expect("Failed to parse APP_ENVIRONMENT.");
-    // Layer on the environment-specific values.
-    settings.merge(
-        config::File::from(configuration_directory.join(environment.as_str())).required(true),
-    )?;
-    settings.try_into()
+
+    let settings = Config::builder()
+        .add_source(File::from(configuration_directory.join("base")).required(true))
+        .add_source(File::from(configuration_directory.join(environment.as_str())).required(true))
+        .build()?;
+
+    settings.try_deserialize()
 }
-/// The possible runtime environment for our application.
+
 pub enum Environment {
     Local,
     Production,
