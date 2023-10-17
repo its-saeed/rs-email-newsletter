@@ -9,6 +9,12 @@ impl AsRef<str> for SubscriberEmail {
     }
 }
 
+impl ToString for SubscriberEmail {
+    fn to_string(&self) -> String {
+        self.0.clone()
+    }
+}
+
 impl SubscriberEmail {
     pub fn parse(s: String) -> Result<SubscriberEmail, String> {
         if validate_email(&s) {
